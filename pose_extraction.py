@@ -8,11 +8,11 @@ mp_drawing = mp.solutions.drawing_utils
 pose = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
 # Open video
-video_path = "./pushup/push-up.mp4"  # <--- Change this
+video_path = "./pushup/push-up-top.mp4"  # <--- Change this
 cap = cv2.VideoCapture(video_path)
 
 # Output CSV
-csv_file = open("pushup_front.csv", mode="w", newline="")
+csv_file = open("pushup_top.csv", mode="w", newline="")
 csv_writer = csv.writer(csv_file)
 
 # Header
