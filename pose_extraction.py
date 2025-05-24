@@ -1,56 +1,71 @@
 import cv2
-import csv
 import mediapipe as mp
+import pandas as pd
+import os
 
-# Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
-pose = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-# Open video
-video_path = "./pushup/push-up-top.mp4"  # <--- Change this
-cap = cv2.VideoCapture(video_path)
+pose = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5)
 
-# Output CSV
-csv_file = open("pushup_top.csv", mode="w", newline="")
-csv_writer = csv.writer(csv_file)
+base_dir = "non_pushup"
+num_videos = 9
 
-# Header
-landmark_names = [f"{joint}_{axis}" for joint in range(33) for axis in ["x", "y", "z", "v"]]
-csv_writer.writerow(["frame", *landmark_names, "label"])
+all_data = []
 
-frame_num = 0
-while cap.isOpened():
-    success, frame = cap.read()
-    if not success:
-        break
+for i in range(1, num_videos + 1):
+    video_path = os.path.join(base_dir, f"non_pushup-{i}.mp4")
+    cap = cv2.VideoCapture(video_path)
+    frame_num = 0
 
-    image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = pose.process(image_rgb)
+    if not cap.isOpened():
+        print(f"Error opening video file: {video_path}")
+        continue
 
-    if results.pose_landmarks:
-        # Save to CSV
-        row = [frame_num]
-        for landmark in results.pose_landmarks.landmark:
-            row.extend([landmark.x, landmark.y, landmark.z, landmark.visibility])
-        row.append("pushup")
-        csv_writer.writerow(row)
+    print(f"Processing {video_path}")
 
-        # Draw landmarks on frame
-        mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        frame_num += 1
+        image_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = pose.process(image_rgb)
 
-    # Show the video with landmarks
-    cv2.imshow('Pose Detection', frame)
+        if results.pose_landmarks:
+            landmarks = results.pose_landmarks.landmark
+            
+            # Draw landmarks on the frame
+            mp_drawing.draw_landmarks(
+                frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
 
-    # Press Esc to quit early
-    if cv2.waitKey(1) & 0xFF == 27:
-        break
+            row = [frame_num]
+            for lm in landmarks:
+                row.extend([lm.x, lm.y, lm.z, lm.visibility])
+            row.append(0)
+            all_data.append(row)
+        else:
+            # No landmarks
+            row = [frame_num] + [float('nan')] * (33 * 4) + [0]
+            all_data.append(row)
 
-    frame_num += 1
+        # Show frame with landmarks
+        cv2.imshow('Pushup Pose', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
-# Cleanup
-csv_file.close()
-cap.release()
-cv2.destroyAllWindows()
+    cap.release()
+
 pose.close()
-print("✅ Done. Landmarks saved and video processed.")
+cv2.destroyAllWindows()
+
+columns = ['frame']
+for i in range(33):
+    columns.extend([f"{i}_x", f"{i}_y", f"{i}_z", f"{i}_v"])
+columns.append('label')
+
+df = pd.DataFrame(all_data, columns=columns)
+df.to_csv("non_pushup_landmarks.csv", index=False)
+
+print("Extraction complete! Data saved to non_pushup_landmarks.csv")
