@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 import joblib
 
 # Load both CSVs
-twists_df = pd.read_csv("all_russian_twists/twists.csv")
+twists_df = pd.read_csv("all_plank/planks.csv")
 non_twists_df = pd.read_csv("non_pushup_landmarks.csv")
 
 # Label them
