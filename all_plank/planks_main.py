@@ -148,6 +148,10 @@ while cap.isOpened():
         plank_held = feedback_tracker.update(landmarks)
         if plank_held:
             total_plank_frames += 1  # Accumulate total frames
+        else: 
+            if total_plank_frames > 0:
+                print(f"Plank held for {total_plank_frames} seconds.")  
+            total_plank_frames = 0
         plank_time_sec = total_plank_frames / fps
         mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
         feedback_tracker.draw_visualization(frame, landmarks)
