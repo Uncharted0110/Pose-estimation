@@ -9,13 +9,13 @@ mp_drawing = mp.solutions.drawing_utils
 pose = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5)
 
 # Use an absolute path relative to the script location for robustness
-base_dir = os.path.join(os.path.dirname(__file__), "all_plank", "plank_videos")
-num_videos = 6
+base_dir = os.path.join(os.path.dirname(__file__), "all_squats", "squats_videos")
+num_videos = 5
 
 all_data = []
 
 for i in range(1, num_videos + 1):
-    video_path = os.path.join(base_dir, f"plank-{i}.mp4")
+    video_path = os.path.join(base_dir, f"squats-{i}.mp4")
     cap = cv2.VideoCapture(video_path)
     frame_num = 0
 
@@ -52,7 +52,7 @@ for i in range(1, num_videos + 1):
             all_data.append(row)
 
         # Show frame with landmarks
-        cv2.imshow('Plank Pose', frame)
+        cv2.imshow('Squat Pose', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -67,6 +67,6 @@ for i in range(33):
 columns.append('label')
 
 df = pd.DataFrame(all_data, columns=columns)
-df.to_csv("planks.csv", index=False)
+df.to_csv("squats.csv", index=False)
 
-print("Extraction complete! Data saved to planks.csv")
+print("Extraction complete! Data saved to squats.csv")
